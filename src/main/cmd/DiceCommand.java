@@ -1,8 +1,10 @@
 package main.cmd;
 
+import java.awt.Color;
 import java.util.Random;
 
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.event.message.MessageCreateEvent;
 
 import main.BotUser;
@@ -17,6 +19,9 @@ public class DiceCommand extends CommandExecutor {
 	public void execute(BotUser user, MessageCreateEvent event, String[] args) {
 		TextChannel c = event.getChannel();
 		channels = new AllowedChannels(new String[]{"dicing"});
+		EmbedBuilder embed = new EmbedBuilder()
+			    .setAuthor("Dicing", "", "https://vignette.wikia.nocookie.net/2007scape/images/3/30/Coins_10000.png")
+				.setColor(Color.RED);
 		
 		if (!channels.contains(c)) {
 			return;
@@ -26,37 +31,56 @@ public class DiceCommand extends CommandExecutor {
 		int bet = 0;
 		
 		if (args.length == 1) {
-			c.sendMessage(user.getMention() + " syntax is: "+args[0]+" [amount]");
+			embed.setTitle(user.getName() + ", syntax is: "+args[0]+" [amount]");
+			c.sendMessage(embed);
 			return;
 		}
 		
 		try {
 		bet = Integer.parseInt(args[1]);
 		} catch(NumberFormatException e) {
-			c.sendMessage(user.getMention() + " '" + args[1] + "' is not a valid bet.");
+			embed.setTitle(user.getName() + ", '" + args[1] + "' is not a valid bet.");
+			c.sendMessage(embed);
 			return;
 		}
 		
 		if (bet > user.getCash()) {
-			c.sendMessage(user.getMention() + " You do not have enough gp to bet that much.");
+			embed.setTitle(user.getName() + ", You do not have enough gp to bet that much.");
+			c.sendMessage(embed);
 			return;
 		}
 		
 		if (bet < Config.MIN_DICE_BET) {
-			c.sendMessage(user.getMention() + " The minimum bet here is "+Config.MIN_DICE_BET + "gp.");
+			embed.setTitle(user.getName() + ", The minimum bet here is "+Config.MIN_DICE_BET + "gp.");
+			c.sendMessage(embed);
 			return;
 		}
 		
 		int num = rng.nextInt(99) + 1;
 		
 		if (num > 55) {//win
-			c.sendMessage(user.getMention() +" rolled a "+num+" and won "+ bet + "gp.");
+			c.sendMessage(getResultEmbed(user, num, true, bet));
 			user.setCash(user.getCash() + bet);
 		} else {//lose
-			c.sendMessage(user.getMention() +" rolled a "+num+" and lost "+ bet + "gp.");	
+			c.sendMessage(getResultEmbed(user, num, false, bet));
 			user.setCash(user.getCash() - bet);
 		}
 		XMLDatabase.saveXML(user);
+	}
+	
+	public EmbedBuilder getResultEmbed(BotUser user, int num, boolean win, int bet) {
+		EmbedBuilder embed = new EmbedBuilder()
+			    .setAuthor("Dicing", "", "https://vignette.wikia.nocookie.net/2007scape/images/3/30/Coins_10000.png");
+			    String title = user.getName()+" rolled a "+num;
+		if (win) {
+			    embed.setColor(Color.GREEN);
+			    title += " and won "+bet+"gp";
+		} else {
+				embed.setColor(Color.RED);
+			    title += " and lost "+bet+"gp";
+		}
+		embed.setTitle(title);
+		return embed;
 	}
 
 }
