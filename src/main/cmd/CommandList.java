@@ -22,6 +22,27 @@ public class CommandList {
 				"gp"
 				}, new WalletCommand());
 		
+		list.put(new String[]{
+				"slots"
+		}, new SlotsCommand());
+		
+		list.put(new String[]{
+				"bet"
+		}, new BetCommand());
+		
+		list.put(new String[]{
+				"clearbets"
+		}, new ClearBetCommand());
+		
+		list.put(new String[]{
+				"bets"
+		}, new BetsCommand());
+		
+		list.put(new String[]{
+				"roulette",
+				"spin"
+		}, new RouletteCommand());
+		
 		return list;
 	}
 }
